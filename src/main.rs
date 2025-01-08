@@ -55,11 +55,13 @@ fn add_head<'x, Element>(me: Arc<RwLock<DoublyLinked<'x, &'x Element>>>, val: &'
 // dop the head, setting it to the next head
 fn drop_head<'x, Element>(me: Arc<RwLock<DoublyLinked<'x, &'x Element>>>) -> Arc<RwLock<DoublyLinked<'x, &'x Element>>>{
 
+    let to_drop = ((me.read().unwrap().head)().read().unwrap().head)();
+
     println!("Hello, world1");
-    let next_head = Arc::clone(&((me.read().unwrap().head)().read().unwrap().head)());
+    let next_head = Arc::clone(&to_drop);
 
     println!("Hello, world2");
-    let next_head2 = Arc::clone(&next_head);
+    let next_head2 = Arc::clone(&to_drop);
 
     println!("Hello, world3");
     me.write().unwrap().head = Box::new(move || Arc::clone(&next_head));
@@ -92,13 +94,19 @@ fn main() {
 
     let third = add_head(second, &9);
 
-    let elem = third.read().unwrap();
+    let elem = third.read().unwrap(); // elem at 1
 
-    println!("3 expect 3 {0}", elem.val);
+    println!("3 expect 1 {0}", elem.val);
+
+    println!("4 expect 9 {0}", (elem.head)().read().unwrap().val);
+    println!("5 expect 3 {0}", (elem.tail)().read().unwrap().val);
+
+    println!("6 expect 1 {0}", ((elem.tail)().read().unwrap().head)().read().unwrap().val);
+    println!("6 expect 9 {0}", (((elem.tail)().read().unwrap().head)().read().unwrap().head)().read().unwrap().val);
 
     let nineAsHead = drop_head((elem.tail)());
 
     let val4 = nineAsHead.read().unwrap().val;
-    println!("4. expect 9 {0}", val4);
+    println!("6. expect 9 {0}", val4);
 
 }
