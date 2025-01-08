@@ -52,6 +52,22 @@ fn add_head<'x, Element>(me: Arc<RwLock<DoublyLinked<'x, &'x Element>>>, val: &'
     me
 }
 
+// dop the head, setting it to the next head
+fn drop_head<'x, Element>(me: Arc<RwLock<DoublyLinked<'x, &'x Element>>>) -> Arc<RwLock<DoublyLinked<'x, &'x Element>>>{
+
+    let next_head = Arc::clone(&((me.read().unwrap().head)().read().unwrap().head)());
+
+    let next_head2 = Arc::clone(&next_head);
+
+    me.write().unwrap().head = Box::new(move || Arc::clone(&next_head));
+
+    let me_clone = Arc::clone(&me);
+
+    next_head2.write().unwrap().tail = Box::new(move || Arc::clone(&me_clone));
+
+    me
+}
+
 fn main() {
     let first = singleton(&1);
 
@@ -68,5 +84,16 @@ fn main() {
 
     println!("Hello, world! {0}", val2);
 
+
+    let third = add_head(second, &9);
+
+    let elem = third.read().unwrap();
+
+    println!("xxx {0}", elem.val);
+
+    let nineAsHead = drop_head((elem.tail)());
+
+    let val4 = nineAsHead.read().unwrap().val;
+    println!("Hello, world! {0}", val4);
 
 }
