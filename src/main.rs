@@ -25,31 +25,30 @@ fn singleton<'x, Element>(val: &'x Element) -> Arc<RwLock<DoublyLinked<'x, &'x E
     begin
 }
 
+// proper monoid
+// I suppose  it's also with flipped args
+fn add<'x, Element>(tail: Arc<RwLock<DoublyLinked<'x, &'x Element>>>, head: Arc<RwLock<DoublyLinked<'x, &'x Element>>>) -> Arc<RwLock<DoublyLinked<'x, &'x Element>>> {
 
-fn add_tail<'x, Element>(me: Arc<RwLock<DoublyLinked<'x, &'x Element>>>, val: &'x Element) -> Arc<RwLock<DoublyLinked<'x, &'x Element>>> {
+    let head_clone = Arc::clone(&head);
+    tail.write().unwrap().head = Box::new(move || Arc::clone(&head_clone)); 
 
-    let begin = singleton(val);
+    let tail_clone = Arc::clone(&tail);
+    head.write().unwrap().tail = Box::new(move || Arc::clone(&tail_clone));
 
-    let begin_clone = Arc::clone(&begin);
-    me.write().unwrap().tail = Box::new(move || Arc::clone(&begin_clone)); 
-
-    let me_clone = Arc::clone(&me);
-    begin.write().unwrap().head = Box::new(move || Arc::clone(&me_clone));
-
-    me
+    tail
 }
 
-fn add_head<'x, Element>(me: Arc<RwLock<DoublyLinked<'x, &'x Element>>>, val: &'x Element) -> Arc<RwLock<DoublyLinked<'x, &'x Element>>> {
 
+fn add_tail<'x, Element>(me: Arc<RwLock<DoublyLinked<'x, &'x Element>>>, val: &'x Element) -> Arc<RwLock<DoublyLinked<'x, &'x Element>>> {
     let begin = singleton(val);
+    add(begin, me)
+}
 
-    let begin_clone = Arc::clone(&begin);
-    me.write().unwrap().head = Box::new(move || Arc::clone(&begin_clone)); 
 
-    let me_clone = Arc::clone(&me);
-    begin.write().unwrap().tail = Box::new(move || Arc::clone(&me_clone));
 
-    me
+fn add_head<'x, Element>(me: Arc<RwLock<DoublyLinked<'x, &'x Element>>>, val: &'x Element) -> Arc<RwLock<DoublyLinked<'x, &'x Element>>> {
+    let begin = singleton(val);
+    add(me, begin)
 }
 
 // dop the head, setting it to the next head
