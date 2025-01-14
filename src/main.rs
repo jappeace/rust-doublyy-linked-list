@@ -15,14 +15,14 @@ fn singleton<'x, Element>(val: Element) -> DoublyLinked<'x, Element> {
         val: val
   }
 }
-fn add<'x, Element>(tail: &'x mut DoublyLinked<'x, Element>, head: &'x mut DoublyLinked<'x, Element>) -> DoublyLinked<'x, Element>  where Element: Clone {
-
-    tail.head = Some(head);
-
+fn add<'x, Element>(tail: &'x DoublyLinked<'x, Element>, head: &'x mut DoublyLinked<'x, Element>) -> DoublyLinked<'x, Element>  where Element: Clone {
     head.tail = Some(tail);
 
-    tail.clone()
-
+    DoublyLinked {
+        head: Some(head),
+        tail: tail.tail,
+        val: tail.val.clone()
+    }
 }
 
 fn main() {
